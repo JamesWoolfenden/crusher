@@ -1,0 +1,7 @@
+src
+.idea/
+.DS_Store
+*.orig
+crusher.exe
+crusher
+dist/
