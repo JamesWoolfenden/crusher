@@ -45,7 +45,7 @@ jobs:
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@82556589c08f584cb95411629a94e6c2b68b9b80 # v5
         with:
-          name: jameswoolfenden/ghat
+          name: jameswoolfenden/crusher
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           tags: "latest,${{ github.ref_name }}"
@@ -54,7 +54,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          repository: jameswoolfenden/ghat
+          repository: jameswoolfenden/crusher
           short-description: ${{ github.event.repository.description }}
           readme-filepath: ./README.md
   update-scoop:
@@ -68,5 +68,5 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
           repository: jameswoolfenden/scoop
-          event-type: ghat
+          event-type: crusher
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
