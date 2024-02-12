@@ -24,14 +24,17 @@ func init() {
 func (content *Crusher) ReadWithFilter() ([]string, error) {
 	var w bytes.Buffer
 	ctx := context.Background()
-	client, err := bigtable.NewClient(ctx, *content.ProjectID, *content.InstanceID)
-
-	var keys []string
+	client, err := bigtable.NewClient(ctx, content.ProjectID, content.InstanceID)
 
 	if err != nil {
 		return nil, fmt.Errorf("bigtable.NewAdminClient: %w", err)
 	}
-	tbl := client.Open(*content.TableID)
+
+	content.Filter = bigtable.RowKeyFilter(content.KeyFilter)
+
+	var keys []string
+
+	tbl := client.Open(content.TableID)
 	err = tbl.ReadRows(ctx, bigtable.RowRange{},
 		func(row bigtable.Row) bool {
 			keys = append(keys, row.Key())
@@ -96,12 +99,12 @@ func (content *Crusher) insertRows(projectID, instanceID string, rows []string) 
 
 func (content *Crusher) DeleteRows(rows []string) error {
 	ctx := context.Background()
-	client, err := bigtable.NewClient(ctx, *content.ProjectID, *content.TableID)
+	client, err := bigtable.NewClient(ctx, content.ProjectID, content.TableID)
 
 	if err != nil {
 		log.Println("bigtable.NewAdminClient: %w", err)
 	}
-	tbl := client.Open(*content.TableID)
+	tbl := client.Open(content.TableID)
 	mut := bigtable.NewMutation()
 
 	// To use numeric values that will later be incremented,

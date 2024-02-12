@@ -1,12 +1,13 @@
 package main
 
 import (
-	crusher "crusher/src"
-	"crusher/src/version"
 	"fmt"
 	"os"
 	"sort"
 	"time"
+
+	crusher "github.com/JamesWoolfenden/crusher/src"
+	"github.com/JamesWoolfenden/crusher/src/version"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -18,7 +19,7 @@ func main() {
 	fmt.Println(banner.Inline("crusher"))
 	fmt.Println("version:", version.Version)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	var content crusher.Crusher
+	var Content crusher.Crusher
 
 	app := &cli.App{
 		EnableBashCompletion: true,
@@ -30,43 +31,51 @@ func main() {
 				Usage:     "Outputs the application version",
 				UsageText: "Crusher version",
 				Action: func(*cli.Context) error {
-					fmt.Println(version.Version)
-
 					return nil
 				},
 			},
 			{
 				Name:      "clip",
 				Aliases:   []string{"c"},
-				Usage:     "Compacts BigTable ",
+				Usage:     "Compacts BigTable",
 				UsageText: "crusher clip",
-				Action: func(*cli.Context) error {
-					content.ReadWithFilter()
-					return nil
-				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:        "instance",
 						Aliases:     []string{"i"},
 						Usage:       "instance",
-						Destination: content.InstanceID,
+						Destination: &Content.InstanceID,
+						Value:       "pangpt",
 						Category:    "bigtable",
 					},
 					&cli.StringFlag{
 						Name:        "table",
 						Aliases:     []string{"t"},
 						Usage:       "table",
-						Destination: content.TableID,
+						Destination: &Content.TableID,
+						Value:       "pangpt",
 						Category:    "bigtable",
 					},
 					&cli.StringFlag{
 						Name:        "project",
 						Aliases:     []string{"p"},
 						Usage:       "GCloudProject",
-						DefaultText: "Pangpt",
-						Destination: content.ProjectID,
+						Value:       "pangpt",
+						Destination: &Content.ProjectID,
 						Category:    "bigtable",
 					},
+					&cli.StringFlag{
+						Name:        "keyfilter",
+						Aliases:     []string{"k"},
+						Usage:       "GCloudProject",
+						Destination: &Content.KeyFilter,
+						Category:    "bigtable",
+						Value:       "*",
+					},
+				},
+				Action: func(*cli.Context) error {
+					Content.ReadWithFilter()
+					return nil
 				},
 			},
 		},

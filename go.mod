@@ -1,4 +1,4 @@
-module crusher
+module github.com/JamesWoolfenden/crusher
 
 go 1.21
 
