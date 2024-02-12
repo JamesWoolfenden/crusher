@@ -11,9 +11,10 @@ import (
 
 func TestCrusher_DeleteRows(t *testing.T) {
 	type fields struct {
-		TableID    *string
-		ProjectID  *string
-		InstanceID *string
+		TableID    string
+		ProjectID  string
+		InstanceID string
+		KeyFilter  string
 		Filter     bigtable.Filter
 	}
 	type args struct {
@@ -33,6 +34,7 @@ func TestCrusher_DeleteRows(t *testing.T) {
 				TableID:    tt.fields.TableID,
 				ProjectID:  tt.fields.ProjectID,
 				InstanceID: tt.fields.InstanceID,
+				KeyFilter:  tt.fields.KeyFilter,
 				Filter:     tt.fields.Filter,
 			}
 			if err := content.DeleteRows(tt.args.rows); (err != nil) != tt.wantErr {
@@ -44,9 +46,10 @@ func TestCrusher_DeleteRows(t *testing.T) {
 
 func TestCrusher_ReadWithFilter(t *testing.T) {
 	type fields struct {
-		TableID    *string
-		ProjectID  *string
-		InstanceID *string
+		TableID    string
+		ProjectID  string
+		InstanceID string
+		KeyFilter  string
 		Filter     bigtable.Filter
 	}
 	tests := []struct {
@@ -63,6 +66,7 @@ func TestCrusher_ReadWithFilter(t *testing.T) {
 				TableID:    tt.fields.TableID,
 				ProjectID:  tt.fields.ProjectID,
 				InstanceID: tt.fields.InstanceID,
+				KeyFilter:  tt.fields.KeyFilter,
 				Filter:     tt.fields.Filter,
 			}
 			got, err := content.ReadWithFilter()
@@ -79,9 +83,10 @@ func TestCrusher_ReadWithFilter(t *testing.T) {
 
 func TestCrusher_btDelete(t *testing.T) {
 	type fields struct {
-		TableID    *string
-		ProjectID  *string
-		InstanceID *string
+		TableID    string
+		ProjectID  string
+		InstanceID string
+		KeyFilter  string
 		Filter     bigtable.Filter
 	}
 	type args struct {
@@ -101,6 +106,7 @@ func TestCrusher_btDelete(t *testing.T) {
 				TableID:    tt.fields.TableID,
 				ProjectID:  tt.fields.ProjectID,
 				InstanceID: tt.fields.InstanceID,
+				KeyFilter:  tt.fields.KeyFilter,
 				Filter:     tt.fields.Filter,
 			}
 			content.btDelete(tt.args.w, tt.args.r)
@@ -110,9 +116,10 @@ func TestCrusher_btDelete(t *testing.T) {
 
 func TestCrusher_insertRows(t *testing.T) {
 	type fields struct {
-		TableID    *string
-		ProjectID  *string
-		InstanceID *string
+		TableID    string
+		ProjectID  string
+		InstanceID string
+		KeyFilter  string
 		Filter     bigtable.Filter
 	}
 	type args struct {
@@ -133,6 +140,7 @@ func TestCrusher_insertRows(t *testing.T) {
 				TableID:    tt.fields.TableID,
 				ProjectID:  tt.fields.ProjectID,
 				InstanceID: tt.fields.InstanceID,
+				KeyFilter:  tt.fields.KeyFilter,
 				Filter:     tt.fields.Filter,
 			}
 			content.insertRows(tt.args.projectID, tt.args.instanceID, tt.args.rows)
