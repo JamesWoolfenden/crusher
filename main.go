@@ -87,7 +87,8 @@ func main() {
 					},
 				},
 				Action: func(*cli.Context) error {
-					return Content.Clip()
+					Content.Clip()
+					return nil
 				},
 			},
 		},
