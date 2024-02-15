@@ -21,6 +21,7 @@ func TestCrusher_Clip(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
+		want    int
 		wantErr bool
 	}{
 		// TODO: Add test cases.
@@ -36,8 +37,13 @@ func TestCrusher_Clip(t *testing.T) {
 				Days:       tt.fields.Days,
 				Filter:     tt.fields.Filter,
 			}
-			if err := content.Clip(); (err != nil) != tt.wantErr {
+			got, err := content.Clip()
+			if (err != nil) != tt.wantErr {
 				t.Errorf("Clip() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Clip() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

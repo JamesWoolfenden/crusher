@@ -138,27 +138,27 @@ func (content *Crusher) DeleteRows(rows []string) error {
 	return nil
 }
 
-func (content *Crusher) Clip() error {
+func (content *Crusher) Clip() (int, error) {
 	rows, err := content.ReadWithFilter()
 
 	if err != nil {
 		log.Info().Err(err)
-		return nil
+		return 0, nil
 	}
 
 	if len(rows) != 0 {
 		err = content.DeleteRows(rows)
 	} else {
 		log.Info().Msg("nothing to delete")
-		return nil
+		return 0, nil
 	}
 
 	if err != nil {
 		log.Info().Err(err)
-		return nil
+		return 0, nil
 	}
 
 	log.Info().Msgf("deleted %d rows", len(rows))
 
-	return nil
+	return len(rows), nil
 }
