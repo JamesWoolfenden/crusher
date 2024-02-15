@@ -8,5 +8,6 @@ type Crusher struct {
 	InstanceID string
 	KeyFilter  string
 	DryRun     bool
+	Days       int
 	Filter     bigtable.Filter
 }

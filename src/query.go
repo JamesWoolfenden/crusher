@@ -6,21 +6,19 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
 
 	"cloud.google.com/go/bigtable"
-	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
-func init() {
-	var Crusher Crusher
-	// Register a CloudEvent function with the Functions Framework
-	functions.HTTP("btDelete", Crusher.btDelete)
-}
+//func init() {
+//	var Crusher Crusher
+//	// Register a CloudEvent function with the Functions Framework
+//	functions.HTTP("btDelete", Crusher.btDelete)
+//}
 
 func (content *Crusher) ReadWithFilter() ([]string, error) {
 	//var w bytes.Buffer
@@ -31,7 +29,12 @@ func (content *Crusher) ReadWithFilter() ([]string, error) {
 		return nil, fmt.Errorf("bigtable.NewAdminClient: %w", err)
 	}
 
-	content.Filter = bigtable.RowKeyFilter(content.KeyFilter)
+	startTime := time.Unix(0, 0)
+	endTime := time.Now().AddDate(0, 0, -content.Days)
+
+	//TimestampRangeFilter returns a filter that matches any cells whose timestamp is within the given time bounds.
+	timeFilter := bigtable.TimestampRangeFilter(startTime, endTime)
+	content.Filter = bigtable.ChainFilters(bigtable.RowKeyFilter(content.KeyFilter), timeFilter)
 
 	var keys []string
 
@@ -71,7 +74,7 @@ func (content *Crusher) insertRows(projectID, instanceID string, rows []string) 
 	client, err := bigtable.NewClient(ctx, projectID, instanceID)
 
 	if err != nil {
-		log.Info().Msgf("bigtable.NewAdminClient: %w", err)
+		log.Info().Msgf("bigtable.NewAdminClient: %s", err)
 	}
 	tbl := client.Open("crusher")
 	mut := bigtable.NewMutation()
@@ -94,7 +97,7 @@ func (content *Crusher) insertRows(projectID, instanceID string, rows []string) 
 	}
 
 	if err = client.Close(); err != nil {
-		log.Info().Msgf("client.Close(): %w", err)
+		log.Info().Msgf("client.Close(): %s", err)
 	}
 }
 
@@ -105,7 +108,7 @@ func (content *Crusher) DeleteRows(rows []string) error {
 		client, err := bigtable.NewClient(ctx, content.ProjectID, content.TableID)
 
 		if err != nil {
-			log.Info().Msgf("bigtable.NewAdminClient: %w", err)
+			log.Info().Msgf("bigtable.NewAdminClient: %s", err)
 		}
 
 		tbl := client.Open(content.TableID)
@@ -135,44 +138,27 @@ func (content *Crusher) DeleteRows(rows []string) error {
 	return nil
 }
 
-func (content *Crusher) btDelete(w http.ResponseWriter, r *http.Request) {
-	//ctx := context.Background()
-	//credentials, err := google.FindDefaultCredentials(ctx, compute.ComputeScope)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-
-	//projectID := credentials.ProjectID // The Google Cloud Platform project ID
-	//instanceID := "pangpt"             // The Google Cloud Bigtable instance ID
-	//tableID := "pangpt"                // The Google Cloud Bigtable table
-
-	//// [END bigtable_quickstart]
-	//// Override with -project, -instance, -table flags
-	//flag.StringVar(&projectID, "project", projectID, "The Google Cloud Platform project ID.")
-	//flag.StringVar(&instanceID, "instance", instanceID, "The Google Cloud Bigtable instance ID.")
-	//flag.StringVar(&tableID, "table", tableID, "The Google Cloud Bigtable table ID.")
-	//flag.Parse()
-
-	startTime := time.Unix(0, 0)
-	endTime := time.Now().AddDate(0, 0, -90)
-
-	//TimestampRangeFilter returns a filter that matches any cells whose timestamp is within the given time bounds.
-	timeFilter := bigtable.TimestampRangeFilter(startTime, endTime)
-	chatFilter := bigtable.RowKeyFilter(".*chat_histories$")
-
-	content.Filter = bigtable.ChainFilters(chatFilter, timeFilter)
+func (content *Crusher) Clip() error {
 	rows, err := content.ReadWithFilter()
 
-	if err != nil || rows == nil {
-		log.Fatal().Msgf("read failure %s", err)
-		return
-	}
-
-	err = content.DeleteRows(rows)
 	if err != nil {
-		log.Fatal().Msgf("delete failure %s", err)
-		return
+		log.Info().Err(err)
+		return nil
 	}
 
-	fmt.Fprintln(w, "ok")
+	if len(rows) != 0 {
+		err = content.DeleteRows(rows)
+	} else {
+		log.Info().Msg("nothing to delete")
+		return nil
+	}
+
+	if err != nil {
+		log.Info().Err(err)
+		return nil
+	}
+
+	log.Info().Msgf("deleted %d rows", len(rows))
+
+	return nil
 }

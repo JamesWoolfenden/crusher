@@ -72,6 +72,13 @@ func main() {
 						Category:    "bigtable",
 						Value:       ".*chat_histories$",
 					},
+					&cli.IntFlag{
+						Name:        "days",
+						Aliases:     []string{"d"},
+						Destination: &Content.Days,
+						Category:    "bigtable",
+						Value:       180,
+					},
 					&cli.BoolFlag{
 						Name:        "dry-run",
 						Destination: &Content.DryRun,
@@ -80,16 +87,7 @@ func main() {
 					},
 				},
 				Action: func(*cli.Context) error {
-					rows, err := Content.ReadWithFilter()
-
-					if err != nil {
-						log.Info().Err(err)
-						return nil
-					}
-
-					log.Info().Msgf("found %d rows", len(rows))
-
-					return nil
+					return Content.Clip()
 				},
 			},
 		},
