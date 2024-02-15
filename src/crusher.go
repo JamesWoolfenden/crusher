@@ -7,5 +7,6 @@ type Crusher struct {
 	ProjectID  string
 	InstanceID string
 	KeyFilter  string
+	DryRun     bool
 	Filter     bigtable.Filter
 }

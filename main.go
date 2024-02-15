@@ -70,11 +70,25 @@ func main() {
 						Usage:       "GCloudProject",
 						Destination: &Content.KeyFilter,
 						Category:    "bigtable",
-						Value:       "*",
+						Value:       ".*chat_histories$",
+					},
+					&cli.BoolFlag{
+						Name:        "dry-run",
+						Destination: &Content.DryRun,
+						Category:    "bigtable",
+						Value:       true,
 					},
 				},
 				Action: func(*cli.Context) error {
-					Content.ReadWithFilter()
+					rows, err := Content.ReadWithFilter()
+
+					if err != nil {
+						log.Info().Err(err)
+						return nil
+					}
+
+					log.Info().Msgf("found %d rows", len(rows))
+
 					return nil
 				},
 			},

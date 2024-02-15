@@ -6,10 +6,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"cloud.google.com/go/bigtable"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -22,7 +23,7 @@ func init() {
 }
 
 func (content *Crusher) ReadWithFilter() ([]string, error) {
-	var w bytes.Buffer
+	//var w bytes.Buffer
 	ctx := context.Background()
 	client, err := bigtable.NewClient(ctx, content.ProjectID, content.InstanceID)
 
@@ -38,7 +39,7 @@ func (content *Crusher) ReadWithFilter() ([]string, error) {
 	err = tbl.ReadRows(ctx, bigtable.RowRange{},
 		func(row bigtable.Row) bool {
 			keys = append(keys, row.Key())
-			printRow(&w, row)
+			//printRow(&w, row)
 			return true
 		}, bigtable.RowFilter(content.Filter))
 
@@ -70,7 +71,7 @@ func (content *Crusher) insertRows(projectID, instanceID string, rows []string) 
 	client, err := bigtable.NewClient(ctx, projectID, instanceID)
 
 	if err != nil {
-		log.Println("bigtable.NewAdminClient: %w", err)
+		log.Info().Msgf("bigtable.NewAdminClient: %w", err)
 	}
 	tbl := client.Open("crusher")
 	mut := bigtable.NewMutation()
@@ -93,37 +94,44 @@ func (content *Crusher) insertRows(projectID, instanceID string, rows []string) 
 	}
 
 	if err = client.Close(); err != nil {
-		log.Println("client.Close(): %w", err)
+		log.Info().Msgf("client.Close(): %w", err)
 	}
 }
 
 func (content *Crusher) DeleteRows(rows []string) error {
-	ctx := context.Background()
-	client, err := bigtable.NewClient(ctx, content.ProjectID, content.TableID)
 
-	if err != nil {
-		log.Println("bigtable.NewAdminClient: %w", err)
+	if !content.DryRun {
+		ctx := context.Background()
+		client, err := bigtable.NewClient(ctx, content.ProjectID, content.TableID)
+
+		if err != nil {
+			log.Info().Msgf("bigtable.NewAdminClient: %w", err)
+		}
+
+		tbl := client.Open(content.TableID)
+		mut := bigtable.NewMutation()
+
+		// To use numeric values that will later be incremented,
+		// they need to be big-endian encoded as 64-bit integers.
+		buf := new(bytes.Buffer)
+		initialLinkCount := 1 // The initial number of links.
+		if err := binary.Write(buf, binary.BigEndian, initialLinkCount); err != nil {
+			return err
+		}
+
+		mut.DeleteRow()
+
+		for _, row := range rows {
+			err = tbl.Apply(ctx, row, mut)
+		}
+
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Info().Msg("dry-run only")
 	}
-	tbl := client.Open(content.TableID)
-	mut := bigtable.NewMutation()
 
-	// To use numeric values that will later be incremented,
-	// they need to be big-endian encoded as 64-bit integers.
-	buf := new(bytes.Buffer)
-	initialLinkCount := 1 // The initial number of links.
-	if err := binary.Write(buf, binary.BigEndian, initialLinkCount); err != nil {
-		return err
-	}
-
-	mut.DeleteRow()
-
-	for _, row := range rows {
-		err = tbl.Apply(ctx, row, mut)
-	}
-
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -156,13 +164,13 @@ func (content *Crusher) btDelete(w http.ResponseWriter, r *http.Request) {
 	rows, err := content.ReadWithFilter()
 
 	if err != nil || rows == nil {
-		log.Fatalf("read failure %s", err)
+		log.Fatal().Msgf("read failure %s", err)
 		return
 	}
 
 	err = content.DeleteRows(rows)
 	if err != nil {
-		log.Fatalf("delete failure %s", err)
+		log.Fatal().Msgf("delete failure %s", err)
 		return
 	}
 
