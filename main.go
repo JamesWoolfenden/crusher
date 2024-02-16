@@ -81,9 +81,10 @@ func main() {
 					},
 					&cli.BoolFlag{
 						Name:        "dry-run",
+						Aliases:     []string{"r"},
 						Destination: &Content.DryRun,
 						Category:    "bigtable",
-						Value:       true,
+						Value:       false,
 					},
 				},
 				Action: func(*cli.Context) error {
@@ -105,35 +106,3 @@ func main() {
 		log.Fatal().Err(err).Msg("crusher failure")
 	}
 }
-
-//func mainold() {
-//	projectID := "pangpt"  // The Google Cloud Platform project ID
-//	instanceID := "pangpt" // The Google Cloud Bigtable instance ID
-//	tableID := "pangpt"    // The Google Cloud Bigtable table
-//
-//	// [END bigtable_quickstart]
-//	// Override with -project, -instance, -table flags
-//	flag.StringVar(&projectID, "project", projectID, "The Google Cloud Platform project ID.")
-//	flag.StringVar(&instanceID, "instance", instanceID, "The Google Cloud Bigtable instance ID.")
-//	flag.StringVar(&tableID, "table", tableID, "The Google Cloud Bigtable table ID.")
-//	flag.Parse()
-//
-//	startTime := time.Unix(0, 0)
-//	endTime := time.Now().AddDate(0, 0, -90)
-//
-//	//TimestampRangeFilter returns a filter that matches any cells whose timestamp is within the given time bounds.
-//	timeFilter := bigtable.TimestampRangeFilter(startTime, endTime)
-//	chatFilter := bigtable.RowKeyFilter(".*chat_histories$")
-//
-//	filter := bigtable.ChainFilters(chatFilter, timeFilter)
-//	rows, err := content.ReadWithFilter(projectID, instanceID, tableID, filter)
-//
-//	if err != nil || rows == nil {
-//		log.Fatalf("read failure %s", err)
-//	}
-//
-//	err = btdelete.DeleteRows(projectID, instanceID, tableID, rows)
-//	if err != nil {
-//		log.Fatalf("delete failure %s", err)
-//	}
-//}

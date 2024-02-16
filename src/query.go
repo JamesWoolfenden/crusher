@@ -14,12 +14,6 @@ import (
 	"cloud.google.com/go/bigtable"
 )
 
-//func init() {
-//	var Crusher Crusher
-//	// Register a CloudEvent function with the Functions Framework
-//	functions.HTTP("btDelete", Crusher.btDelete)
-//}
-
 func (content *Crusher) ReadWithFilter() ([]string, error) {
 	//var w bytes.Buffer
 	ctx := context.Background()
@@ -105,7 +99,7 @@ func (content *Crusher) DeleteRows(rows []string) error {
 
 	if !content.DryRun {
 		ctx := context.Background()
-		client, err := bigtable.NewClient(ctx, content.ProjectID, content.TableID)
+		client, err := bigtable.NewClient(ctx, content.ProjectID, content.InstanceID)
 
 		if err != nil {
 			log.Info().Msgf("bigtable.NewAdminClient: %s", err)
@@ -113,24 +107,16 @@ func (content *Crusher) DeleteRows(rows []string) error {
 
 		tbl := client.Open(content.TableID)
 		mut := bigtable.NewMutation()
-
-		// To use numeric values that will later be incremented,
-		// they need to be big-endian encoded as 64-bit integers.
-		buf := new(bytes.Buffer)
-		initialLinkCount := 1 // The initial number of links.
-		if err := binary.Write(buf, binary.BigEndian, initialLinkCount); err != nil {
-			return err
-		}
-
 		mut.DeleteRow()
 
 		for _, row := range rows {
 			err = tbl.Apply(ctx, row, mut)
+			if err != nil {
+				log.Info().Err(err)
+				return err
+			}
 		}
 
-		if err != nil {
-			return err
-		}
 	} else {
 		log.Info().Msg("dry-run only")
 	}
@@ -154,7 +140,7 @@ func (content *Crusher) Clip() (int, error) {
 	}
 
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 		return 0, nil
 	}
 
