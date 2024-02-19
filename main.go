@@ -43,7 +43,6 @@ func main() {
 					&cli.StringFlag{
 						Name:        "instance",
 						Aliases:     []string{"i"},
-						Usage:       "instance",
 						Destination: &Content.InstanceID,
 						Value:       "pangpt",
 						Category:    "bigtable",
@@ -51,7 +50,6 @@ func main() {
 					&cli.StringFlag{
 						Name:        "table",
 						Aliases:     []string{"t"},
-						Usage:       "table",
 						Destination: &Content.TableID,
 						Value:       "pangpt",
 						Category:    "bigtable",
@@ -59,7 +57,6 @@ func main() {
 					&cli.StringFlag{
 						Name:        "project",
 						Aliases:     []string{"p"},
-						Usage:       "GCloudProject",
 						Value:       "pangpt",
 						Destination: &Content.ProjectID,
 						Category:    "bigtable",
@@ -67,7 +64,6 @@ func main() {
 					&cli.StringFlag{
 						Name:        "keyfilter",
 						Aliases:     []string{"k"},
-						Usage:       "GCloudProject",
 						Destination: &Content.KeyFilter,
 						Category:    "bigtable",
 						Value:       ".*chat_histories$",
