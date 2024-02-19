@@ -94,7 +94,7 @@ func main() {
 			},
 		},
 		Name:     "crusher",
-		Usage:    "AISB utility",
+		Usage:    "crsuher clip",
 		Compiled: time.Time{},
 		Authors:  []*cli.Author{{Name: "James Woolfenden", Email: "jim.wolf@duck.com"}},
 		Version:  version.Version,
