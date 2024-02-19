@@ -90,7 +90,7 @@ func main() {
 			},
 		},
 		Name:     "crusher",
-		Usage:    "crsuher clip",
+		Usage:    "crusher clip",
 		Compiled: time.Time{},
 		Authors:  []*cli.Author{{Name: "James Woolfenden", Email: "jim.wolf@duck.com"}},
 		Version:  version.Version,
