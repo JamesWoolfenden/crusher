@@ -1,11 +1,14 @@
 # .goreleaser.yml
+version: 2
 
 before:
   hooks:
     - ./set-version.sh
 
 builds:
-  - goos:
+  - env:
+      - CGO_ENABLED=0
+    goos:
       - darwin
       - linux
       - windows
@@ -18,6 +21,7 @@ builds:
     ignore:
       - goarch: "386"
         goos: darwin
+
 archives:
   - format_overrides:
       - goos: windows
@@ -25,23 +29,16 @@ archives:
 
 brews:
   - name: crusher
-
     repository:
       owner: JamesWoolfenden
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-
-
     commit_author:
       name: "GitHub Action"
       email: action@github.com
-
     homepage: "https://github.com/JamesWoolfenden/crusher#readme"
-
     description: "crusher is a utility bigtable applications"
-
     install: |
       bin.install "crusher"
-
     test: |
       system "#{bin}/crusher", "--help"

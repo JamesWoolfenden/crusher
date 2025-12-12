@@ -77,3 +77,23 @@ gci:
 
 fmt:
 	gofumpt -l -w .
+
+staticcheck: ## Run staticcheck
+	@./scripts/run-staticcheck.sh
+
+gosec: ## Run security scanner
+	gosec -quiet -exclude-generated ./...
+
+govulncheck: ## Check for known vulnerabilities
+	govulncheck ./...
+
+complexity: ## Check cyclomatic complexity
+	gocyclo -over 15 -avg .
+
+check-all: ## Run all checks (vet, staticcheck, gosec, govulncheck)
+	@echo "Running all code checks..."
+	@$(MAKE) vet
+	@$(MAKE) staticcheck
+	@$(MAKE) gosec
+	@$(MAKE) govulncheck
+	@echo "All checks passed!"

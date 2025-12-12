@@ -12,7 +12,7 @@
 [![Github All Releases](https://img.shields.io/github/downloads/jameswoolfenden/crusher/total.svg)](https://github.com/JamesWoolfenden/crusher/releases)
 [![codecov](https://codecov.io/gh/JamesWoolfenden/crusher/graph/badge.svg?token=PT5FSJF2U3)](https://codecov.io/gh/JamesWoolfenden/crusher)
 
-crusher manages labels in Dockerfiles and their layers
+Crusher is a Google Cloud BigTable maintenance utility that compacts tables by deleting old rows based on timestamp filters and key patterns.
 
 ## Table of Contents
 
@@ -73,21 +73,76 @@ scoop install crusher
 
 ```shell
 docker pull jameswoolfenden/crusher
-docker run --tty --volume /local/path/to/tf:/tf jameswoolfenden/crusher scan -d /tf
+docker run --tty jameswoolfenden/crusher clip --project my-project --instance my-instance --table my-table --dry-run
+```
+
+**Note:** You'll need to mount Google Cloud credentials for authentication:
+
+```shell
+docker run --tty \
+  -v ~/.config/gcloud:/root/.config/gcloud \
+  jameswoolfenden/crusher clip --project my-project --instance my-instance --table my-table
 ```
 
 <https://hub.docker.com/repository/docker/jameswoolfenden/crusher>
 
 ## Usage
 
-### Directory scan
+Crusher compacts Google Cloud BigTable instances by deleting rows older than a specified number of days that match a key pattern.
 
-This will look for the .github/workflow folder and update all the files it finds
-there, and display a diff of the changes made to each file:
+### Basic Usage
+
+Delete rows from a BigTable instance (dry-run mode by default):
 
 ```bash
-$crusher label -d .
+crusher clip --project my-project --instance my-instance --table my-table --keyfilter ".*" --days 180 --dry-run
 ```
+
+### Parameters
+
+**Required:**
+- `--project, -p`: GCP project ID
+- `--instance, -i`: BigTable instance ID
+- `--table, -t`: BigTable table name
+
+**Optional:**
+- `--keyfilter, -k`: Regex pattern to match row keys (default: ".*" - matches all rows)
+- `--days, -d`: Delete rows older than this many days (default: 180)
+- `--dry-run, -r`: Preview deletions without executing them (default: false)
+- `--yes, -y`: Skip confirmation prompt (default: false)
+
+### Examples
+
+**Preview deletions** (recommended first step):
+
+```bash
+crusher clip --project my-project --instance my-instance --table my-table --dry-run
+```
+
+**Delete old rows with confirmation prompt**:
+
+```bash
+crusher clip --project my-project --instance my-instance --table my-table --days 90
+```
+
+This will:
+1. Preview how many rows would be deleted
+2. Ask for confirmation before proceeding
+3. Delete the rows if confirmed
+
+**Delete old chat history rows**:
+
+```bash
+crusher clip --project my-project --instance my-instance --table chat-data --keyfilter ".*chat_histories$" --days 90
+```
+
+**Delete all rows older than 1 year (skip confirmation)**:
+
+```bash
+crusher clip --project my-project --instance my-instance --table logs --keyfilter ".*" --days 365 --yes
+```
+
+**Note:** By default, crusher will always preview deletions and ask for confirmation unless you use `--dry-run` or `--yes` flags.
 
 ## Help
 
