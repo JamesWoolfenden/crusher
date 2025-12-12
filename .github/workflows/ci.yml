@@ -23,15 +23,15 @@ jobs:
     ## the steps that will be run through for each version and platform
     ## combination
     steps:
+      ## checks out our code locally, so we can work with the files
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
       ## sets up go based on the version
       - name: Install Go
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version: ${{ matrix.go-version }}
-
-      ## checks out our code locally, so we can work with the files
-      - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       ## runs go test ./...
       - name: Build
