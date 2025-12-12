@@ -23,11 +23,12 @@ builds:
         goos: darwin
 
 archives:
-  - format_overrides:
+  - format: tar.gz
+    formats:
       - goos: windows
         format: zip
 
-brews:
+homebrew:
   - name: crusher
     repository:
       owner: JamesWoolfenden
