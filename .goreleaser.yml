@@ -1,13 +1,24 @@
 # .goreleaser.yml
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
 version: 2
 
 before:
   hooks:
-    - ./set-version.sh
+    - go mod tidy
 
 builds:
   - env:
       - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/JamesWoolfenden/crusher/src/version.Version={{.Version}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
     goos:
       - darwin
       - linux
@@ -23,12 +34,34 @@ builds:
         goos: darwin
 
 archives:
-  - format: tar.gz
-    formats:
+  - format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 
-homebrew:
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+sboms:
+  - artifacts: archive
+
+signs:
+  - artifacts: checksum
+    stdin: "{{ .Env.PASSPHRASE }}"
+    args:
+      - "--batch"
+      - "--pinentry-mode"
+      - "loopback"
+      - "--passphrase-fd"
+      - "0"
+      - "-u"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
+homebrew_casks:
   - name: crusher
     repository:
       owner: JamesWoolfenden
@@ -39,7 +72,9 @@ homebrew:
       email: action@github.com
     homepage: "https://github.com/JamesWoolfenden/crusher#readme"
     description: "crusher is a utility bigtable applications"
-    install: |
-      bin.install "crusher"
-    test: |
-      system "#{bin}/crusher", "--help"
+    hooks:
+      post:
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/crusher"]
+          end

@@ -7,6 +7,8 @@ on:
 permissions: read-all
 jobs:
   goreleaser:
+    env:
+      GOTOOLCHAIN: auto
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
@@ -25,11 +27,12 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@e24998b8b67b290c2fa8b7c14fcfa7de2c5c9b8c # v7.1.0
+        uses: goreleaser/goreleaser-action@1a80836c5c9d9e5755a25cb59ec6f45a3b5f41a8 # v7.2.1
         with:
           version: latest
           args: release --clean
         env:
+          GOTOOLCHAIN: auto
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -37,7 +40,7 @@ jobs:
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
   publish-dockerhub:
     permissions: write-all
-    runs-on:  ubuntu-latest
+    runs-on: ubuntu-latest
     needs:
       - goreleaser
     steps:
@@ -66,7 +69,7 @@ jobs:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
           repository: jameswoolfenden/scoop
           event-type: crusher
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
