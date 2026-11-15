@@ -1,6 +1,6 @@
 module github.com/JamesWoolfenden/crusher
 
-go 1.26.10
+go 1.26.11
 
 require (
 	cloud.google.com/go/bigtable v1.41.0
